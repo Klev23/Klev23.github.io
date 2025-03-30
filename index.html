@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aprende Letras Cursivas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f5f5f5;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .contenedor-principal {
+            background-color: #fffacd;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            max-width: 800px;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        
+        .card {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 200px;
+            height: 200px;
+            background: white;
+            margin: 20px auto;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+        }
+        .card img {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+        }
+        button, input {
+            padding: 10px;
+            margin: 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+        }
+        button {
+            background: #007BFF;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        input {
+            text-align: center;
+            border: 2px solid #007BFF;
+        }
+        #reward {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);
+        }
+        #reward img {
+            width: 150px;
+            height: auto;
+        }
+        
+        /* Estilos para la pizarra de dibujo */
+        .pizarra-container {
+            width: 90%;
+            margin: 30px auto;
+        }
+        
+        .pizarra {
+            width: 100%;
+            height: 300px;
+            background-color: #2c3e50;
+            border-radius: 15px;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+            touch-action: none;
+        }
+        
+        #lienzo {
+            cursor: crosshair;
+            background-color: transparent;
+        }
+        
+        .herramientas-pizarra {
+            margin-top: 15px;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .herramientas-pizarra button {
+            background: #34495e;
+            margin: 5px;
+            padding: 8px 15px;
+        }
+        
+        .herramientas-pizarra button.active {
+            background: #007BFF;
+        }
+        
+        .color-picker {
+            vertical-align: middle;
+            margin: 0 10px;
+        }
+        
+        .grosor-pincel {
+            width: 60px;
+            margin: 0 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="contenedor-principal">
+    <h1>Aprende las Letras Cursivas</h1>
+    <div class="card">
+        <img id="letterImage" src="" alt="Letra Cursiva">
+    </div>
+    
+    <button onclick="playSound()">Escuchar</button>
+    
+    <input type="text" id="userInput" placeholder="Escribe la letra aquí">
+    <button onclick="checkAnswer()">Verificar</button>
+
+    <button onclick="nextLetter()">Siguiente</button>
+
+    <p id="message"></p>
+
+    <audio id="audio"></audio>
+
+    <div id="reward">
+        <img src="https://i.imgur.com/3qzduS3.png" alt="Premio">
+        <p>¡Bien hecho!</p>
+    </div>
+</div>
+
+<!-- Pizarra para dibujar -->
+<div class="contenedor-principal">
+    <h2>Practica el trazado</h2>
+    <div class="pizarra-container">
+        <canvas id="lienzo" class="pizarra" width="700" height="300"></canvas>
+    </div>
+    <div class="herramientas-pizarra">
+        <button id="btn-dibujar" class="active">Lápiz</button>
+        <button id="btn-borrar">Borrador</button>
+        <button id="btn-limpiar">Limpiar</button>
+        <input type="color" id="color-pincel" class="color-picker" value="#ffffff">
+        <input type="range" id="grosor-pincel" class="grosor-pincel" min="1" max="20" value="5">
+    </div>
+</div>
+
+    <script>
+        const letters = [
+            { cursive: "A", image: "https://i.imgur.com/yourAimage.png", sound: "https://yourhost.com/a.mp3" },
+            { cursive: "E", image: "https://i.imgur.com/yourEimage.png", sound: "https://yourhost.com/e.mp3" },
+            { cursive: "I", image: "https://i.imgur.com/yourIimage.png", sound: "https://yourhost.com/i.mp3" },
+            { cursive: "O", image: "https://i.imgur.com/yourOimage.png", sound: "https://yourhost.com/o.mp3" },
+            { cursive: "U", image: "https://i.imgur.com/yourUimage.png", sound: "https://yourhost.com/u.mp3" },
+            { cursive: "L", image: "https://i.imgur.com/yourLimage.png", sound: "https://yourhost.com/l.mp3" },
+            { cursive: "P", image: "https://i.imgur.com/yourPimage.png", sound: "https://yourhost.com/p.mp3" },
+            { cursive: "S", image: "https://i.imgur.com/yourSimage.png", sound: "https://yourhost.com/s.mp3" },
+            { cursive: "M", image: "https://i.imgur.com/yourMimage.png", sound: "https://yourhost.com/m.mp3" },
+            { cursive: "N", image: "https://i.imgur.com/yourNimage.png", sound: "https://yourhost.com/n.mp3" },
+            { cursive: "T", image: "https://i.imgur.com/yourTimage.png", sound: "https://yourhost.com/t.mp3" }
+        ];
+        
+        let current = 0;
+
+        function loadLetter() {
+            document.getElementById("letterImage").src = letters[current].image;
+        }
+
+        function playSound() {
+            document.getElementById("audio").src = letters[current].sound;
+            document.getElementById("audio").play();
+        }
+
+        function checkAnswer() {
+            const userAnswer = document.getElementById("userInput").value.toUpperCase();
+            const correctAnswer = letters[current].cursive;
+            const message = document.getElementById("message");
+
+            if (userAnswer === correctAnswer) {
+                message.textContent = "¡Correcto! 🎉";
+                message.style.color = "green";
+                showReward();
+            } else {
+                message.textContent = "Inténtalo de nuevo.";
+                message.style.color = "red";
+            }
+        }
+
+        function showReward() {
+            const reward = document.getElementById("reward");
+            reward.style.display = "block";
+            setTimeout(() => {
+                reward.style.display = "none";
+            }, 2000);
+        }
+
+        function nextLetter() {
+            current = (current + 1) % letters.length;
+            loadLetter();
+            document.getElementById("userInput").value = "";
+            document.getElementById("message").textContent = "";
+        }
+
+        // Cargar la primera letra al iniciar
+        loadLetter();
+
+        // Código para la pizarra de dibujo
+        const canvas = document.getElementById('lienzo');
+        const ctx = canvas.getContext('2d');
+        const btnDibujar = document.getElementById('btn-dibujar');
+        const btnBorrar = document.getElementById('btn-borrar');
+        const btnLimpiar = document.getElementById('btn-limpiar');
+        const colorPincel = document.getElementById('color-pincel');
+        const grosorPincel = document.getElementById('grosor-pincel');
+        
+        let isDrawing = false;
+        let currentTool = 'pencil';
+        let currentColor = 'black';
+        let currentWidth = 5;
+        
+        // Configuración inicial
+        ctx.strokeStyle = currentColor;
+        ctx.lineWidth = currentWidth;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        
+        // Eventos del canvas
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+        
+        // Eventos táctiles para dispositivos móviles
+        canvas.addEventListener('touchstart', handleTouchStart);
+        canvas.addEventListener('touchmove', handleTouchMove);
+        canvas.addEventListener('touchend', stopDrawing);
+        
+        // Herramientas
+        btnDibujar.addEventListener('click', () => {
+            currentTool = 'pencil';
+            btnDibujar.classList.add('active');
+            btnBorrar.classList.remove('active');
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.strokeStyle = currentColor;
+        });
+        
+        btnBorrar.addEventListener('click', () => {
+            currentTool = 'eraser';
+            btnBorrar.classList.add('active');
+            btnDibujar.classList.remove('active');
+            ctx.globalCompositeOperation = 'destination-out';
+        });
+        
+        btnLimpiar.addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+        
+        colorPincel.addEventListener('input', (e) => {
+            currentColor = e.target.value;
+            if (currentTool === 'pencil') {
+                ctx.strokeStyle = currentColor;
+            }
+        });
+        
+        grosorPincel.addEventListener('input', (e) => {
+            currentWidth = e.target.value;
+            ctx.lineWidth = currentWidth;
+        });
+        
+        // Funciones de dibujo
+        function startDrawing(e) {
+            isDrawing = true;
+            draw(e);
+        }
+        
+        function draw(e) {
+            if (!isDrawing) return;
+            
+            ctx.beginPath();
+            
+            // Obtener posición
+            let x, y;
+            if (e.type.includes('touch')) {
+                const touch = e.touches[0];
+                const rect = canvas.getBoundingClientRect();
+                x = touch.clientX - rect.left;
+                y = touch.clientY - rect.top;
+            } else {
+                x = e.offsetX;
+                y = e.offsetY;
+            }
+            
+            ctx.moveTo(x, y);
+            
+            if (e.type.includes('touch')) {
+                const touch = e.touches[0];
+                const rect = canvas.getBoundingClientRect();
+                x = touch.clientX - rect.left;
+                y = touch.clientY - rect.top;
+            } else {
+                x = e.offsetX;
+                y = e.offsetY;
+            }
+            
+            ctx.lineTo(x, y);
+            ctx.stroke();
+        }
+        
+        function stopDrawing() {
+            isDrawing = false;
+        }
+        
+        // Funciones para manejar toques
+        function handleTouchStart(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('mousedown', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            canvas.dispatchEvent(mouseEvent);
+        }
+        
+        function handleTouchMove(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('mousemove', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            canvas.dispatchEvent(mouseEvent);
+        }
+    </script>
+
+</body>
+</html>
